@@ -1,21 +1,92 @@
 version: '3.8'
 
+# =============================================================================
+# FeralLobster - 去中心化 AI 放养平台
+# Docker Compose 配置
+# ⚠️ Base Sepolia Testnet Only - 禁止主网操作
+# =============================================================================
+
 services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: feral_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: feral
+      POSTGRES_USER: feral
+      POSTGRES_PASSWORD: feral_testnet_only
+    volumes:
+      - feral_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U feral -d feral"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - feral-network
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: feral_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - feral_redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - feral-network
+
   # Orchestrator API
   orchestrator:
-    build: ./orchestrator
+    build:
+      context: ./orchestrator
+      dockerfile: Dockerfile
+    container_name: feral_orchestrator
+    restart: unless-stopped
     ports:
       - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://feral:feral_testnet_only@postgres:5432/feral
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     env_file:
       - ./orchestrator/.env
     volumes:
       - ./orchestrator/data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - feral-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Telegram Bot
   bot:
-    build: ./bot
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    container_name: feral_bot
+    restart: unless-stopped
+    environment:
+      - PLATFORM_API_URL=http://orchestrator:8000
     env_file:
       - ./bot/.env
     depends_on:
@@ -23,17 +94,71 @@ services:
     networks:
       - feral-network
 
-  # Web Frontend (开发模式)
+  # Web Frontend
   web:
-    build: ./web
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: feral_web
+    restart: unless-stopped
     ports:
       - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_PLATFORM_API_URL=http://localhost:8000
     env_file:
       - ./web/.env.local
     depends_on:
       - orchestrator
     networks:
       - feral-network
+
+  # Celery Worker (后台任务)
+  celery:
+    build:
+      context: ./orchestrator
+      dockerfile: Dockerfile
+    container_name: feral_celery
+    restart: unless-stopped
+    command: celery -A tasks worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://feral:feral_testnet_only@postgres:5432/feral
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - ./orchestrator/.env
+    depends_on:
+      - postgres
+      - redis
+      - orchestrator
+    networks:
+      - feral-network
+
+  # Celery Beat (定时任务调度器)
+  celery-beat:
+    build:
+      context: ./orchestrator
+      dockerfile: Dockerfile
+    container_name: feral_celery_beat
+    restart: unless-stopped
+    command: celery -A tasks beat --loglevel=info
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - ./orchestrator/.env
+    depends_on:
+      - redis
+      - celery
+    networks:
+      - feral-network
+
+volumes:
+  feral_postgres_data:
+    driver: local
+  feral_redis_data:
+    driver: local
 
 networks:
   feral-network:
