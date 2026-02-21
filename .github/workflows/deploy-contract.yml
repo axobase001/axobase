@@ -30,8 +30,10 @@ jobs:
       - name: Install dependencies
         run: |
           cd contracts
-          forge install OpenZeppelin/openzeppelin-contracts --no-commit || true
-          forge install foundry-rs/forge-std --no-commit || true
+          mkdir -p lib
+          git init
+          forge install OpenZeppelin/openzeppelin-contracts@v4.9.3 --no-commit --shallow
+          forge install foundry-rs/forge-std@v1.5.6 --no-commit --shallow
 
       - name: Run Forge build
         run: |
@@ -65,8 +67,10 @@ jobs:
       - name: Install dependencies
         run: |
           cd contracts
-          forge install OpenZeppelin/openzeppelin-contracts --no-commit || true
-          forge install foundry-rs/forge-std --no-commit || true
+          mkdir -p lib
+          git init
+          forge install OpenZeppelin/openzeppelin-contracts@v4.9.3 --no-commit --shallow
+          forge install foundry-rs/forge-std@v1.5.6 --no-commit --shallow
 
       - name: Deploy FeralRite
         env:
