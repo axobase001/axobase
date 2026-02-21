@@ -90,11 +90,18 @@ jobs:
           echo "Chain ID: 84532"
           echo ""
           
+          # 确保私钥有 0x 前缀
+          KEY="$PRIVATE_KEY"
+          if [[ ! "$KEY" =~ ^0x ]]; then
+            KEY="0x$KEY"
+          fi
+          echo "Using key: ${KEY:0:10}..."
+          
           # 执行部署脚本
           forge script script/Deploy.s.sol \
             --rpc-url $RPC_URL \
             --broadcast \
-            --private-key $PRIVATE_KEY \
+            --private-key "$KEY" \
             -vvvv 2>&1 | tee deploy_output.txt
           
           echo ""
