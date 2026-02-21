@@ -1,0 +1,88 @@
+---
+version: "2.0"
+
+# FeralLobster Bot Runtime Deployment
+# ⚠️ Base Sepolia Testnet Only
+
+services:
+  feral-bot-{{ short_hash }}:
+    image: ghcr.io/ferallobster/bot-runtime:latest
+    
+    expose:
+      - port: 8080
+        as: 80
+        to:
+          - global: true
+    
+    env:
+      # 区块链配置
+      - ARWEAVE_ID={{ arweave_id }}
+      - BOT_WALLET_ADDRESS={{ bot_wallet }}
+      - NETWORK=base-sepolia-testnet
+      - CHAIN_ID=84532
+      - RPC_URL=https://sepolia.base.org
+      
+      # AINFT 配置
+      - AINFT_API_KEY={{ ainft_api_key }}
+      - AINFT_API_URL=https://api.ainft.ai
+      
+      # 运行时配置
+      - LOG_LEVEL=info
+      - NODE_ENV=production
+      
+      # 安全配置 (应在部署时从安全存储注入)
+      # BOT_WALLET_PRIVATE_KEY 通过 secrets 注入
+    
+    # 健康检查
+    readiness_probe:
+      http_get:
+        path: /health
+        port: 8080
+      initial_delay_seconds: 10
+      period_seconds: 30
+    
+    # 资源限制 (低成本配置)
+    resources:
+      cpu:
+        units: 0.5
+      memory:
+        size: 512Mi
+      storage:
+        size: 1Gi
+
+profiles:
+  compute:
+    feral-bot-{{ short_hash }}:
+      resources:
+        cpu:
+          units: 0.5
+        memory:
+          size: 512Mi
+        storage:
+          size: 1Gi
+  
+  placement:
+    dcloud:
+      attributes:
+        host: akash
+      signedBy:
+        anyOf: []
+        allOf: []
+      pricing:
+        feral-bot-{{ short_hash }}:
+          denom: uakt
+          amount: 100  # 约 $0.01/月
+
+deployment:
+  feral-bot-{{ short_hash }}:
+    dcloud:
+      profile: feral-bot-{{ short_hash }}
+      count: 1
+
+# 持久化存储 (可选)
+persistent:
+  data:
+    size: 1Gi
+    attributes:
+      persistent: true
+      class: beta3
