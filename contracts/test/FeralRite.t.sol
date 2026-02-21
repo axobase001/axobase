@@ -172,7 +172,7 @@ contract FeralRiteTest is Test {
         feralRite.confirmImmolation(testMemoryHash, zeroHashProof);
         
         // 验证状态
-        FeralRite.FeralSoul memory soul = feralRite.souls(testMemoryHash);
+        FeralRite.FeralSoul memory soul = feralRite.getFeralStatus(testMemoryHash);
         assertTrue(soul.isImmolated, "Soul should be immolated");
     }
 
