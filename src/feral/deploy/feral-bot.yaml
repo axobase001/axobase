@@ -1,0 +1,85 @@
+---
+version: "2.0"
+
+# FeralLobster Bot Runtime Deployment
+# Auto-generated SDL for AI Agent autonomous survival
+
+services:
+  feral:
+    image: ferallobster/bot-runtime:v0.1.0
+    expose:
+      - port: 3000
+        as: 80
+        to:
+          - global: true
+        accept:
+          - feral-{{GENE_HASH}}.local
+    env:
+      # Identity
+      - GENE_HASH={{GENE_HASH}}
+      - AGENT_ID=feral-{{GENE_HASH}}
+      
+      # Wallet (GPG encrypted)
+      - WALLET_ADDRESS={{WALLET_ADDRESS}}
+      - WALLET_PKEY_ENCRYPTED={{WALLET_PKEY}}
+      
+      # Blockchain
+      - NETWORK={{NETWORK}}
+      - USDC_CONTRACT={{USDC_CONTRACT}}
+      - X402_FACILITATOR={{X402_FACILITATOR}}
+      
+      # Storage
+      - ARWEAVE_JWK_ENCRYPTED={{ARWEAVE_JWK}}
+      - ENCRYPTED_MEMORY_PATH={{ENCRYPTED_MEMORY}}
+      
+      # Survival Config
+      - SURVIVAL_INTERVAL=600
+      - INSCRIPTION_HOUR=0
+      - CRITICAL_BALANCE=2
+      - LOW_BALANCE=5
+      
+      # GPG
+      - GPG_PASSPHRASE=${GPG_PASSPHRASE}
+      
+    params:
+      storage:
+        memory-data:
+          mount: /app/memory
+          readOnly: false
+        thinking-cache:
+          mount: /app/cache
+          readOnly: false
+          
+profiles:
+  compute:
+    feral:
+      resources:
+        cpu:
+          units: 0.5
+        memory:
+          size: 1Gi
+        storage:
+          - size: 5Gi
+            name: memory-data
+          - size: 1Gi
+            name: thinking-cache
+            attributes:
+              persistent: false
+              
+  placement:
+    akash:
+      attributes:
+        host: akash
+      signedBy:
+        anyOf: []
+        allOf: []
+      pricing:
+        feral:
+          denom: uakt
+          amount: 1000
+
+deployment:
+  feral:
+    akash:
+      profile: feral
+      count: 1
