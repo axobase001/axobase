@@ -3,170 +3,53 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 248, 250, 252;
-  --background-start-rgb: 2, 6, 23;
-  --background-end-rgb: 15, 23, 42;
+  --axo-cyan: #00f0ff;
+  --axo-pink: #ff00a0;
+  --axo-green: #00ff88;
+  --axo-purple: #a855f7;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-    to bottom,
-    rgb(var(--background-start-rgb)),
-    rgb(var(--background-end-rgb))
-  );
-  min-height: 100vh;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-black text-white;
+    background-image: 
+      radial-gradient(circle at 20% 50%, rgba(0, 240, 255, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 0, 160, 0.03) 0%, transparent 50%);
+  }
 }
 
-/* 自定义滚动条 */
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, var(--axo-cyan) 0%, var(--axo-pink) 100%);
+  }
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #18181b;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #3f3f46;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #52525b;
 }
 
-/* 科幻感文字效果 */
-.cyber-text {
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
-}
-
-.glow-border {
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
-}
-
-/* 步骤条动画 */
-.step-enter {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.step-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: all 0.3s ease-out;
-}
-
-/* 长按按钮效果 */
-.hold-button {
-  position: relative;
-  overflow: hidden;
-}
-
-.hold-button::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  background: linear-gradient(90deg, #ff0044, #ff3366);
-  transition: width 3s linear;
-}
-
-/* Observatory - Cyberpunk Styles */
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
-.font-mono {
-  font-family: 'Share Tech Mono', monospace;
-}
-
-/* Custom Scrollbar for Observatory */
-.scrollbar-thin::-webkit-scrollbar {
-  width: 4px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-track {
-  background: #050a0f;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #00ff9d40;
-  border-radius: 2px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #00ff9d80;
-}
-
-/* Glitch Effect */
-@keyframes glitch {
-  0% { transform: translate(0); }
-  20% { transform: translate(-2px, 2px); }
-  40% { transform: translate(-2px, -2px); }
-  60% { transform: translate(2px, 2px); }
-  80% { transform: translate(2px, -2px); }
-  100% { transform: translate(0); }
-}
-
-.glitch {
-  animation: glitch 0.3s ease-in-out;
-}
-
-/* Flicker Animation */
-@keyframes flicker {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.8; }
-}
-
-.flicker {
-  animation: flicker 2s ease-in-out infinite;
-}
-
-/* Scan Line Animation */
-@keyframes scan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
-}
-
-.scan-line {
-  animation: scan 4s linear infinite;
-}
-
-/* Pulse Border */
-@keyframes pulse-border {
-  0%, 100% { border-color: rgba(0, 255, 157, 0.3); }
-  50% { border-color: rgba(0, 255, 157, 0.8); }
-}
-
-.pulse-border {
-  animation: pulse-border 2s ease-in-out infinite;
-}
-
-/* Data Stream Background */
-.data-stream {
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(0, 255, 157, 0.03) 50%,
-    transparent 100%
-  );
-  background-size: 100% 200%;
-  animation: dataStream 10s linear infinite;
-}
-
-@keyframes dataStream {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 0% 200%; }
-}
-
-/* Selection Color */
+/* Selection */
 ::selection {
-  background: rgba(0, 255, 157, 0.3);
-  color: #00ff9d;
-}
-
-/* Focus Visible */
-*:focus-visible {
-  outline: 1px solid #00ff9d;
-  outline-offset: 2px;
+  background: rgba(0, 240, 255, 0.3);
+  color: white;
 }

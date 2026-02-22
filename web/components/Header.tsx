@@ -1,56 +1,74 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { useI18n, LanguageSwitcher } from './I18nProvider';
+import Link from 'next/link'
+import Image from 'next/image'
+import { useLanguage } from '@/lib/language-context'
+import { Globe, Github, BookOpen, Telescope, Home } from 'lucide-react'
 
-/**
- * Main navigation header with language switcher
- */
 export function Header() {
-  const { t } = useI18n();
+  const { language, toggleLanguage, t } = useLanguage()
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur border-b border-slate-800">
-      {/* Network Banner */}
-      <div className="bg-yellow-500/90 text-black text-center py-1 text-xs font-bold">
-        🌐 {t('common.network')} - Base Mainnet
-      </div>
-      
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-zinc-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-lg" />
-            <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+          <Link href="/" className="flex items-center space-x-3">
+            <div className="relative w-10 h-10 rounded-lg overflow-hidden">
+              <Image
+                src="/logo.jpg"
+                alt="Axobase Logo"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
               Axobase
             </span>
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/" className="text-slate-300 hover:text-white transition-colors">
-              {t('nav.home')}
-            </Link>
-            <Link href="/observatory" className="text-slate-300 hover:text-white transition-colors">
-              {t('nav.observatory')}
-            </Link>
-            <Link href="/release" className="text-slate-300 hover:text-white transition-colors">
-              {t('nav.release')}
-            </Link>
-            <a 
-              href="https://github.com/0xinvictus1999/Axobase"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-slate-300 hover:text-white transition-colors"
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link 
+              href="/" 
+              className="flex items-center space-x-1 text-zinc-400 hover:text-cyan-400 transition-colors"
             >
-              {t('nav.github')}
-            </a>
+              <Home className="w-4 h-4" />
+              <span>{t('nav.home')}</span>
+            </Link>
+            <Link 
+              href="/observatory" 
+              className="flex items-center space-x-1 text-zinc-400 hover:text-cyan-400 transition-colors"
+            >
+              <Telescope className="w-4 h-4" />
+              <span>{t('nav.observatory')}</span>
+            </Link>
+            <Link 
+              href="https://github.com/axobase001/axobase" 
+              target="_blank"
+              className="flex items-center space-x-1 text-zinc-400 hover:text-cyan-400 transition-colors"
+            >
+              <Github className="w-4 h-4" />
+              <span>{t('nav.github')}</span>
+            </Link>
           </nav>
 
-          {/* Language Switcher */}
-          <LanguageSwitcher />
+          {/* Right side */}
+          <div className="flex items-center space-x-4">
+            {/* Language Switcher */}
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-cyan-500/50 transition-colors"
+            >
+              <Globe className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm font-medium text-zinc-300">
+                {language === 'en' ? 'EN' : '中文'}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </header>
-  );
+  )
 }

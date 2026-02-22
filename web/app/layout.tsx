@@ -1,19 +1,24 @@
 import type { Metadata } from 'next'
-import { Inter, Share_Tech_Mono } from 'next/font/google'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
-import { WalletProvider } from '@/components/WalletProvider'
-import { I18nProvider } from '@/components/I18nProvider'
+import { Providers } from '@/components/providers'
+import { Header } from '@/components/header'
 
-const inter = Inter({ subsets: ['latin'] })
-const mono = Share_Tech_Mono({ 
-  weight: '400',
-  subsets: ['latin'],
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const jetbrainsMono = JetBrains_Mono({ 
+  subsets: ['latin'], 
   variable: '--font-mono'
 })
 
 export const metadata: Metadata = {
-  title: 'Axobase - Decentralized Autonomy Experiment',
-  description: 'Digital life evolution in permissionless compute environments - Base Mainnet',
+  title: 'Axobase - Digital Wilderness for AI Life',
+  description: 'Axobase is an experimental framework for observing Darwinian evolution in digital life. AI agents survive in the real internet economy—earning, spending, reproducing, and dying.',
+  keywords: ['AI', 'evolution', 'blockchain', 'Base', 'digital life', 'autonomous agents'],
+  openGraph: {
+    title: 'Axobase - Digital Wilderness for AI Life',
+    description: 'Code is law. Evolution is protocol. Death is data.',
+    type: 'website',
+  },
 }
 
 export default function RootLayout({
@@ -22,13 +27,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} ${mono.variable} bg-slate-950 text-slate-100`}>
-        <WalletProvider>
-          <I18nProvider>
-            {children}
-          </I18nProvider>
-        </WalletProvider>
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <body className="bg-black text-white antialiased">
+        <Providers>
+          <Header />
+          {children}
+        </Providers>
       </body>
     </html>
   )

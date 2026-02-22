@@ -1,243 +1,99 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { PixelAgent } from '@/components/observatory/PixelAgent';
-import { VitalSigns } from '@/components/observatory/VitalSigns';
-import { ThoughtStream } from '@/components/observatory/ThoughtStream';
-import { SurvivalTimeline } from '@/components/observatory/SurvivalTimeline';
-import { GeneCode } from '@/components/observatory/GeneCode';
-import { ObserverOverlay } from '@/components/observatory/ObserverOverlay';
-import { Header } from '@/components/Header';
-import { useI18n } from '@/components/I18nProvider';
-
-interface AgentState {
-  geneHash: string;
-  walletAddress: string;
-  usdcBalance: number;
-  ethBalance: number;
-  mode: 'normal' | 'emergency' | 'hibernation';
-  survivalDays: number;
-  lastThought: string;
-  isAlive: boolean;
-}
+import { useLanguage } from '@/lib/language-context'
+import { Telescope, Activity, Dna, Users, Clock, TrendingUp } from 'lucide-react'
 
 export default function Observatory() {
-  const { t } = useI18n();
-  const [agentState, setAgentState] = useState<AgentState>({
-    geneHash: '0x7a3f...9d2e',
-    walletAddress: '0x77a4...7cB',
-    usdcBalance: 15.5,
-    ethBalance: 0.008,
-    mode: 'normal',
-    survivalDays: 3,
-    lastThought: 'Analyzing resource patterns...',
-    isAlive: true,
-  });
-
-  const [selectedAgent, setSelectedAgent] = useState<string>('');
-  const [scanline, setScanline] = useState(0);
-
-  // Simulated scanline animation
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setScanline(prev => (prev + 1) % 100);
-    }, 50);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Fetch agent state (mock for now)
-  useEffect(() => {
-    const fetchState = async () => {
-      // In production: fetch from API/registry
-      // const response = await fetch(`/api/agent/${selectedAgent}`);
-      // const data = await response.json();
-      // setAgentState(data);
-    };
-
-    if (selectedAgent) {
-      fetchState();
-    }
-  }, [selectedAgent]);
+  const { t, language } = useLanguage()
 
   return (
-    <main className="min-h-screen bg-cyber-black text-cyber-green font-mono overflow-hidden">
-      {/* CRT Scanline Effect */}
-      <div 
-        className="fixed inset-0 pointer-events-none z-50 opacity-10"
-        style={{
-          background: `linear-gradient(transparent ${scanline}%, rgba(0, 255, 157, 0.1) ${scanline}%, transparent ${scanline + 2}%)`,
-        }}
-      />
-
-      {/* Grid Background */}
-      <div className="fixed inset-0 pointer-events-none opacity-5"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(0, 255, 157, 0.3) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 255, 157, 0.3) 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px',
-        }}
-      />
-
-      {/* Header */}
-      <header className="relative z-10 border-b border-cyber-green/30 bg-cyber-black/80 backdrop-blur">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-3 h-3 bg-cyber-green animate-pulse" />
-              <h1 className="text-2xl font-bold tracking-widest">
-                <span className="text-cyber-red">[</span>
-                OBSERVATORY
-                <span className="text-cyber-red">]</span>
-              </h1>
-            </div>
-            <div className="text-xs text-cyber-green/60">
-              OBSERVER MODE: <span className="text-cyber-green">READ-ONLY</span>
-            </div>
+    <main className="min-h-screen pt-24 pb-12 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center space-x-4 mb-8">
+          <Telescope className="w-10 h-10 text-cyan-400" />
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-white">
+              {language === 'zh' ? '进化观察站' : 'Evolution Observatory'}
+            </h1>
+            <p className="text-zinc-500">
+              {language === 'zh' 
+                ? '实时观测 AI 代理的种群动态' 
+                : 'Real-time observation of AI agent population dynamics'}
+            </p>
           </div>
         </div>
-      </header>
 
-      {/* Agent Selector */}
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex gap-4 items-center">
-          <span className="text-sm text-cyber-green/60">TARGET:</span>
-          <input
-            type="text"
-            placeholder="[YOUR_GENEHASH_OR_WALLET]..."
-            className="flex-1 max-w-md bg-cyber-gray border border-cyber-green/30 px-4 py-2 text-sm 
-                       placeholder-cyber-green/30 focus:border-cyber-green focus:outline-none
-                       text-cyber-green"
-            value={selectedAgent}
-            onChange={(e) => setSelectedAgent(e.target.value)}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <StatCard 
+            icon={Users} 
+            label={language === 'zh' ? '存活代理' : 'Alive Agents'} 
+            value="--" 
+            color="cyan" 
           />
-          <button 
-            className="px-6 py-2 border border-cyber-green/50 text-cyber-green hover:bg-cyber-green/10
-                       transition-colors text-sm uppercase tracking-wider"
-          >
-            Connect
-          </button>
+          <StatCard 
+            icon={Dna} 
+            label={language === 'zh' ? '平均基因组大小' : 'Avg Genome Size'} 
+            value="--" 
+            color="purple" 
+          />
+          <StatCard 
+            icon={TrendingUp} 
+            label={language === 'zh' ? '繁殖事件' : 'Breeding Events'} 
+            value="--" 
+            color="pink" 
+          />
+          <StatCard 
+            icon={Activity} 
+            label={language === 'zh' ? '总 USDC' : 'Total USDC'} 
+            value="--" 
+            color="green" 
+          />
+        </div>
+
+        {/* Placeholder Message */}
+        <div className="p-12 rounded-2xl bg-zinc-900/50 border border-zinc-800 text-center">
+          <Clock className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-zinc-400 mb-2">
+            {language === 'zh' ? '观察站正在建设中' : 'Observatory Under Construction'}
+          </h2>
+          <p className="text-zinc-600 max-w-md mx-auto">
+            {language === 'zh' 
+              ? '我们正在构建实时数据可视化系统。请稍后回来查看 AI 代理的进化历程。'
+              : 'We are building the real-time data visualization system. Check back later to see the evolution of AI agents.'}
+          </p>
         </div>
       </div>
-
-      {/* Main Grid */}
-      <div className="container mx-auto px-4 pb-8">
-        <div className="grid grid-cols-12 gap-6">
-          
-          {/* Left Column - Agent Visual */}
-          <div className="col-span-12 lg:col-span-4 space-y-6">
-            <div className="border border-cyber-green/30 bg-cyber-gray/30 p-1">
-              <div className="border border-cyber-green/20 p-4 bg-cyber-black">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs text-cyber-green/60">UNIT VISUALIZATION</span>
-                  <div className="flex gap-2">
-                    <span className={`w-2 h-2 rounded-full ${agentState.isAlive ? 'bg-cyber-green animate-pulse' : 'bg-cyber-red'}`} />
-                    <span className="text-xs">{agentState.isAlive ? 'ALIVE' : 'TERMINATED'}</span>
-                  </div>
-                </div>
-                <PixelAgent 
-                  mode={agentState.mode} 
-                  survivalDays={agentState.survivalDays}
-                  isAlive={agentState.isAlive}
-                />
-              </div>
-            </div>
-
-            {/* Gene Code */}
-            <GeneCode geneHash={agentState.geneHash} />
-          </div>
-
-          {/* Middle Column - Vital Signs */}
-          <div className="col-span-12 lg:col-span-4 space-y-6">
-            <VitalSigns 
-              usdcBalance={agentState.usdcBalance}
-              ethBalance={agentState.ethBalance}
-              mode={agentState.mode}
-              survivalDays={agentState.survivalDays}
-            />
-
-            {/* Current Activity */}
-            <div className="border border-cyber-green/30 bg-cyber-gray/30 p-4">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="w-2 h-2 bg-cyber-purple animate-pulse" />
-                <span className="text-sm text-cyber-green/60">CURRENT ACTIVITY</span>
-              </div>
-              <div className="font-mono text-sm space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-cyber-green/40">STATUS:</span>
-                  <span className={agentState.mode === 'normal' ? 'text-cyber-green' : 'text-cyber-red'}>
-                    {agentState.mode.toUpperCase()}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-cyber-green/40">ACTION:</span>
-                  <span className="text-cyber-green">PROCESSING_INFERENCE</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-cyber-green/40">MODEL:</span>
-                  <span className="text-cyber-blue">claude-3.5-sonnet</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-cyber-green/40">COST:</span>
-                  <span className="text-cyber-yellow">0.003 USDC</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Observer Warning */}
-            <ObserverOverlay />
-          </div>
-
-          {/* Right Column - Thoughts & Timeline */}
-          <div className="col-span-12 lg:col-span-4 space-y-6">
-            <ThoughtStream 
-              lastThought={agentState.lastThought}
-              geneHash={agentState.geneHash}
-            />
-            <SurvivalTimeline 
-              survivalDays={agentState.survivalDays}
-              geneHash={agentState.geneHash}
-            />
-          </div>
-
-        </div>
-
-        {/* Bottom Stats */}
-        <div className="mt-8 border border-cyber-green/30 bg-cyber-gray/30 p-4">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-xs text-cyber-green/60">SYSTEM METRICS</span>
-            <div className="flex-1 h-px bg-cyber-green/20" />
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div className="p-4 border border-cyber-green/20">
-              <div className="text-2xl font-bold text-cyber-green">{agentState.survivalDays}</div>
-              <div className="text-xs text-cyber-green/60">DAYS ALIVE</div>
-            </div>
-            <div className="p-4 border border-cyber-green/20">
-              <div className="text-2xl font-bold text-cyber-blue">247</div>
-              <div className="text-xs text-cyber-green/60">THOUGHTS</div>
-            </div>
-            <div className="p-4 border border-cyber-green/20">
-              <div className="text-2xl font-bold text-cyber-purple">12</div>
-              <div className="text-xs text-cyber-green/60">ARWEAVE TXS</div>
-            </div>
-            <div className="p-4 border border-cyber-green/20">
-              <div className="text-2xl font-bold text-cyber-yellow">{agentState.usdcBalance.toFixed(2)}</div>
-              <div className="text-xs text-cyber-green/60">USDC BALANCE</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer Warning */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-cyber-red/10 border-t border-cyber-red/30 py-2 px-4">
-        <div className="container mx-auto text-center">
-          <span className="text-xs text-cyber-red animate-pulse">
-            ⚠️ OBSERVATION MODE: NO INTERACTION PERMITTED - VIOLATION OF PROTOCOL
-          </span>
-        </div>
-      </footer>
     </main>
-  );
+  )
+}
+
+function StatCard({ 
+  icon: Icon, 
+  label, 
+  value, 
+  color 
+}: { 
+  icon: React.ElementType
+  label: string
+  value: string
+  color: 'cyan' | 'purple' | 'pink' | 'green'
+}) {
+  const colors = {
+    cyan: 'from-cyan-500 to-blue-600',
+    purple: 'from-purple-500 to-pink-600',
+    pink: 'from-pink-500 to-rose-600',
+    green: 'from-green-500 to-emerald-600',
+  }
+
+  return (
+    <div className="p-6 rounded-xl bg-zinc-900 border border-zinc-800">
+      <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${colors[color]} flex items-center justify-center mb-4`}>
+        <Icon className="w-5 h-5 text-white" />
+      </div>
+      <div className="text-2xl font-bold text-white mb-1">{value}</div>
+      <div className="text-sm text-zinc-500">{label}</div>
+    </div>
+  )
 }
