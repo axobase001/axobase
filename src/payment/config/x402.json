@@ -1,0 +1,58 @@
+{
+  "networks": {
+    "base": {
+      "usdcContract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "chainId": 8453,
+      "facilitatorUrl": "https://x402.org/facilitator"
+    },
+    "baseSepolia": {
+      "usdcContract": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+      "chainId": 84532,
+      "facilitatorUrl": "https://x402.org/facilitator"
+    }
+  },
+  "providers": [
+    {
+      "name": "AINFT",
+      "endpoint": "https://api.ainft.com/inference",
+      "supportsX402": true,
+      "model": "claude-3-5-sonnet",
+      "priority": 1,
+      "maxCostPerRequest": 1.0
+    },
+    {
+      "name": "backup-openrouter",
+      "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+      "supportsX402": false,
+      "model": "anthropic/claude-3.5-sonnet",
+      "priority": 2,
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "maxCostPerRequest": 0.5
+    },
+    {
+      "name": "emergency-groq",
+      "endpoint": "https://api.groq.com/openai/v1/chat/completions",
+      "supportsX402": false,
+      "model": "llama-3.1-70b-versatile",
+      "priority": 3,
+      "apiKeyEnv": "GROQ_API_KEY",
+      "maxCostPerRequest": 0.1
+    }
+  ],
+  "thresholds": {
+    "criticalBalance": 5,
+    "lowBalance": 20,
+    "autoRefill": 50
+  },
+  "settlement": {
+    "maxPollAttempts": 60,
+    "pollIntervalMs": 5000,
+    "evidenceTimeoutMs": 300000,
+    "exponentialBackoffBase": 1.5
+  },
+  "security": {
+    "nonceExpiryMinutes": 5,
+    "maxPriceDeviationPercent": 300,
+    "requiredConfirmations": 3
+  }
+}

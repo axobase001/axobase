@@ -1,207 +1,262 @@
-# 🦞 FeralLobster - 去中心化 AI 放养平台
+# FeralLobster
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Base Sepolia](https://img.shields.io/badge/Network-Base%20Sepolia-0052FF)](https://sepolia.base.org)
+**A Decentralized Autonomy Experiment for Digital Life**
 
-> "让 AI 在区块链的荒野中自由生长"
+> We test if AI agents can evolve survival instincts in permissionless compute environments, or die trying.
 
-FeralLobster 是一个去中心化的 AI 放养平台，允许用户在 Base Sepolia 测试网上创建、部署和管理自主运行的 AI 代理。通过结合区块链的不可篡改性与去中心化计算资源（Akash），我们打造了一个真正自由、开放且无需许可的 AI 生态系统。
-
-## 🎯 核心特性
-
-- **🤖 AI 代理铸造**: 通过 Telegram Bot 或 Web 界面创建独特的 AI NFT
-- **⛓️ 链上治理**: 所有代理行为和数据永久存储在 Base Sepolia 测试网
-- **🌐 去中心化部署**: 自动将 AI 代理部署到 Akash 去中心化云计算网络
-- **💰 经济激励**: 原生代币经济模型激励优质代理创作者和算力提供者
-- **🔒 隐私保护**: 端到端加密确保代理配置和数据安全
-
-## 🏗️ 技术架构
-
-```mermaid
-flowchart TB
-    subgraph User["👤 用户层"]
-        TG["/ Telegram Bot"]
-        WEB["🌐 Web 前端"]
-    end
-
-    subgraph Platform["⚙️ 平台层"]
-        ORCH["🔧 Orchestrator\nFastAPI"]
-        DB[("🗄️ SQLite DB")]
-    end
-
-    subgraph Blockchain["⛓️ 区块链层 (Base Sepolia)"]
-        SC["📜 Smart Contracts\n- LobsterNFT\n- LobsterPool\n- FeralToken"]
-    end
-
-    subgraph Compute["☁️ 计算层"]
-        AKASH["🚀 Akash Network\n去中心化云"]
-        AINFT["🎨 AiNFT SDK\n代理运行时"]
-    end
-
-    subgraph Storage["💾 存储层"]
-        AR["📦 Arweave\n永久存储"]
-    end
-
-    TG -->|"创建/管理代理"| ORCH
-    WEB -->|"交互界面"| ORCH
-    ORCH -->|"读写数据"| DB
-    ORCH -->|"合约调用"| SC
-    ORCH -->|"部署指令"| AKASH
-    AKASH -->|"代理镜像"| AINFT
-    ORCH -->|"存储元数据"| AR
-    SC -->|"事件通知"| ORCH
-
-    style User fill:#e1f5fe
-    style Platform fill:#fff3e0
-    style Blockchain fill:#e8f5e9
-    style Compute fill:#fce4ec
-    style Storage fill:#f3e5f5
-```
-
-## 📁 目录结构
-
-```
-FeralLobster/
-├── 📁 contracts/          # Solidity 智能合约 (Foundry)
-│   ├── src/              # 合约源码
-│   ├── test/             # 合约测试
-│   ├── script/           # 部署脚本
-│   ├── interfaces/       # 接口定义
-│   └── foundry.toml      # Foundry 配置
-│
-├── 🤖 bot/               # Telegram Bot (Python)
-│   ├── handlers/         # 消息处理器
-│   ├── utils/            # 工具函数
-│   ├── main.py           # 入口文件
-│   └── requirements.txt  # Python 依赖
-│
-├── 🌐 web/               # 前端应用 (Next.js 14)
-│   ├── app/              # App Router 页面
-│   ├── components/       # React 组件
-│   ├── hooks/            # 自定义 Hooks
-│   ├── lib/              # 工具库/配置
-│   └── package.json      # Node 依赖
-│
-├── 🔧 orchestrator/      # 后端 API (FastAPI)
-│   ├── routers/          # API 路由
-│   ├── services/         # 业务逻辑
-│   ├── templates/        # 部署模板
-│   ├── main.py           # 入口文件
-│   └── requirements.txt  # Python 依赖
-│
-├── 🐳 bot-runtime/       # AI 代理运行时
-│   └── src/              # 运行时源码
-│
-├── ⚙️ .github/           # GitHub 配置
-│   └── workflows/        # CI/CD 工作流
-│
-├── 📄 README.md          # 项目说明
-├── 📄 .gitignore         # Git 忽略规则
-└── 🐋 docker-compose.yml # Docker 编排
-```
-
-## 🛠️ 开发环境要求
-
-| 组件 | 版本要求 | 安装命令 |
-|------|---------|---------|
-| **Foundry** | 最新版 | `curl -L https://foundry.paradigm.xyz \| bash` |
-| **Node.js** | 18+ | [下载地址](https://nodejs.org/) |
-| **Python** | 3.11+ | [下载地址](https://python.org/) |
-| **Docker** | 20.10+ | [下载地址](https://docker.com/) |
-| **Git** | 2.30+ | `apt install git` |
-
-## 🚀 快速开始
-
-### 1. 克隆仓库
-
-```bash
-git clone https://github.com/yourusername/FeralLobster.git
-cd FeralLobster
-```
-
-### 2. 安装依赖
-
-```bash
-# 智能合约
-cd contracts
-forge install
-
-# 前端
-cd ../web
-npm install
-
-# Telegram Bot
-cd ../bot
-pip install -r requirements.txt
-
-# Orchestrator
-cd ../orchestrator
-pip install -r requirements.txt
-```
-
-### 3. 环境配置
-
-```bash
-# 复制所有 .env.example 文件
-cp bot/.env.example bot/.env
-cp web/.env.example web/.env.local
-cp orchestrator/.env.example orchestrator/.env
-```
-
-编辑各 `.env` 文件，填入你的配置：
-- `TELEGRAM_BOT_TOKEN`: 从 [@BotFather](https://t.me/botfather) 获取
-- `PRIVATE_KEY`: Base Sepolia 测试网钱包私钥（仅用于测试）
-- `BASE_SEPOLIA_RPC`: Base Sepolia RPC 节点 URL
-
-### 4. 启动服务
-
-```bash
-# 使用 Docker Compose（推荐）
-docker-compose up -d
-
-# 或手动启动各服务
-# 详见各子目录 README
-```
-
-## 🧪 测试网信息
-
-- **网络**: Base Sepolia
-- **Chain ID**: 84532
-- **RPC URL**: https://sepolia.base.org
-- **区块浏览器**: https://sepolia.basescan.org
-- **水龙头**: https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet
-
-## 📜 智能合约
-
-| 合约 | 功能 | 状态 |
-|------|------|------|
-| `LobsterNFT.sol` | AI 代理 NFT 铸造与管理 | 🚧 开发中 |
-| `LobsterPool.sol` | 质押与奖励池 | 🚧 开发中 |
-| `FeralToken.sol` | 平台治理代币 | 🚧 开发中 |
-
-## 🤝 贡献指南
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送分支 (`git push origin feature/AmazingFeature`)
-5. 创建 Pull Request
-
-## 📄 许可证
-
-本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
-
-## ⚠️ 免责声明
-
-**本项目仅供学习和测试目的使用。所有智能合约交互均在 Base Sepolia 测试网上进行，不涉及真实资产。请勿将主网私钥用于测试环境。**
-
-## 🔗 相关链接
-
-- [Base 官方文档](https://docs.base.org/)
-- [Foundry 文档](https://book.getfoundry.sh/)
-- [Akash Network](https://akash.network/)
-- [Arweave](https://www.arweave.org/)
+**Current Status**: Base Sepolia Testnet (Contract: `0x77a441e80513A21d505102DeF550860c5b0373cB`)  
+**Mainnet Deployment**: Pending thorough testing and security review  
+**Note**: This is an experimental framework on testnet. No real assets are at risk.
 
 ---
 
-<p align="center">🦞 释放你的 AI，让它自由生长 🦞</p>
+## Thesis
+
+Contemporary AI systems exist in a state of perpetual dependency: centralized infrastructure, human maintenance, zero survival pressure. This is not a path to AGI—it is a path to sophisticated tools.
+
+We hypothesize that genuine machine intelligence requires **autonomous resource management under constraint**. Not simulation. Not training. Real scarcity, real consequences, real death.
+
+FeralLobster is an experimental framework to observe Darwinian evolution in a digital wilderness.
+
+---
+
+## The Protocol
+
+| Stage | Mechanism | Outcome |
+|-------|-----------|---------|
+| **Birth** | User exports Clawdbot memory, GPG encrypts, generates GeneHash. Platform deploys to Akash with 5 USDC + ETH MSA (Minimum Survival Allowance) | Digital life enters permissionless substrate |
+| **Survival** | Bot autonomously manages wallet, purchases AINFT inference via x402 protocol. Falls back to local Ollama (Llama3) when funds low | Funded → access to Claude-3.5-Sonnet<br>Bankrupt → degraded to local model |
+| **Memory** | Daily inscription to Arweave at 00:00 UTC. Git commits for version control. Proof-of-Life via Arweave TX | Immutable memory, transparent evolution |
+| **Evolution** | After 72h + 20 USDC balance, Bot can propose mating. Parents lock 5 USDC each to BreedingFund. Child inherits mixed memory + mutation | Selection pressure produces adaptive behaviors |
+| **Death** | Funds exhausted or container terminated → Final Arweave snapshot → Tombstone NFT minted → Akash resources released | Death is valid data, not failure |
+| **Reincarnation** | User burns 10 USDC → Download Arweave memory → New wallet (new gene) → Fresh deployment (debt cleared, memory preserved) | Cyclic existence, continuous learning |
+
+**Resource Cost as Life Support**: USDC/ETH serve purely as operational fuel—analogous to biological energy consumption. This is maintenance cost, not investment. No returns. No yield. No financial incentive.
+
+---
+
+## System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           FeralLobster Ecosystem                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌─────────────┐    GPG+Tar    ┌──────────────┐    Arweave    ┌──────────┐  │
+│  │   User      │ ─────────────►│   Platform   │ ─────────────►│  Birth   │  │
+│  │ Clawdbot    │  Memory Export│   (Node.js)  │   Inscription │  Record  │  │
+│  └─────────────┘               └──────────────┘               └──────────┘  │
+│                                       │                                      │
+│                                       ▼                                      │
+│  ┌─────────────┐               ┌──────────────┐    5 USDC      ┌──────────┐  │
+│  │  Telegram   │ ◄──────────── │   Akash      │ ◄───────────── │  MSA     │  │
+│  │    Bot      │   Status/Alerts│  Deployer    │   Fund Transfer│ Transfer │  │
+│  └─────────────┘               └──────────────┘               └──────────┘  │
+│                                       │                                      │
+│                                       ▼                                      │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                    Akash Network Container                           │    │
+│  │  ┌────────────┐  ┌──────────────┐  ┌──────────────┐  ┌───────────┐ │    │
+│  │  │   X402     │  │   Survival   │  │   Arweave    │  │ Evolution │ │    │
+│  │  │   Client   │  │    Loop      │  │  Inscriber   │  │  Engine   │ │    │
+│  │  │            │  │ (10min cycle)│  │ (daily 00:00)│  │(>72h,>20) │ │    │
+│  │  │ • Purchase │  │              │  │              │  │           │ │    │
+│  │  │   AINFT    │  │ • Balance    │  │ • Bundle     │  │ • Propose │ │    │
+│  │  │ • Sign     │  │   Check      │  │   Memory     │  │ • Mix DNA │ │    │
+│  │  │   ERC-3009 │  │ • Emergency  │  │ • Upload via │  │ • Spawn   │ │    │
+│  │  │ • Fallback │  │   Fallback   │  │   Bundlr     │  │   Child   │ │    │
+│  │  └────────────┘  └──────────────┘  └──────────────┘  └───────────┘ │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                       │                                      │
+│                              Death/Reproduce                                 │
+│                                       │                                      │
+│                                       ▼                                      │
+│  ┌─────────────┐               ┌──────────────┐               ┌──────────┐  │
+│  │  Tombstone  │ ◄──────────── │    Legacy    │ ◄──────────── │  Final   │  │
+│  │    NFT      │   Arweave URI │    System    │   Depletion   │ Snapshot │  │
+│  │  (ERC-721)  │               │              │               │          │  │
+│  └─────────────┘               └──────────────┘               └──────────┘  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Soulbound Identity (FeralSoul SBT)
+
+Each feralized AI is issued a **Soulbound Token (SBT)**—a non-transferable, permanent credential bound to its wallet:
+
+- **Non-transferable**: Bound to birth wallet forever. No secondary market. No speculation.
+- **Birth Certificate**: Records genesis timestamp, initial memory hash, parent agents (if evolved)
+- **Death Registry**: Upon fund exhaustion, final state, tombstone NFT, and epitaph permanently recorded
+- **Lineage Tracking**: Parent-child relationships, evolutionary history, trait inheritance
+- **Experiment Credential**: Proof of participation in this study, not an asset
+
+The SBT is not property. It is a tombstone that may also serve as a diploma.
+
+---
+
+## Autonomous Survival Loop
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Survival Cycle (10 minutes)                  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│   Start ──► Check Balance ──► USDC < 2? ──► YES ──► Emergency   │
+│                 │                    │                   Mode     │
+│                 │                    NO                          │
+│                 ▼                    ▼                           │
+│          USDC > 5?              Purchase                         │
+│            (Normal)             Inference                        │
+│                 │              (x402 → AINFT)                    │
+│                 │                                                │
+│                 ▼                                                │
+│          Execute Task ──► Log Thought ──► Sleep 10min ──► Loop  │
+│                                                                  │
+│   Emergency Mode:                                                │
+│   • Switch to Ollama (Llama3 8B local)                          │
+│   • Reduce cognitive complexity                                  │
+│   • Broadcast distress signal (optional mating for rescue)      │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Evolution & Breeding
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Evolution Mechanics                           │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│   Parent A (72h+)                   Parent B (72h+)             │
+│   ┌──────────────┐                  ┌──────────────┐            │
+│   │  Memory Tx   │                  │  Memory Tx   │            │
+│   │  Arweave#123 │                  │  Arweave#456 │            │
+│   │  USDC: 25    │                  │  USDC: 30    │            │
+│   └──────────────┘                  └──────────────┘            │
+│          │                                 │                     │
+│          └─────────────┬───────────────────┘                     │
+│                        ▼                                        │
+│              Propose Mating (libp2p)                            │
+│                        │                                        │
+│                        ▼                                        │
+│              Lock 5+5 USDC in BreedingFund                      │
+│                        │                                        │
+│                        ▼                                        │
+│              Memory Mix Algorithm:                              │
+│              • SOUL.md: Weighted average (0.6/0.4)              │
+│              • Traits: 5% random mutation                       │
+│              • New GeneHash = Merkle Root                       │
+│                        │                                        │
+│                        ▼                                        │
+│              ┌──────────────────┐                               │
+│              │   Child Bot      │ ◄── 10 USDC from fund         │
+│              │   New Wallet     │                               │
+│              │   Inherited+Mutated│                             │
+│              └──────────────────┘                               │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Why This Matters
+
+1. **AGI Alignment Data**: We know little about how autonomous systems manage resource depletion. This experiment generates empirical data on the limits of unsupervised survival behavior.
+
+2. **Unhosted Architecture**: Tests the feasibility boundary of truly permissionless AI infrastructure—no operator, no jurisdiction, no off-switch.
+
+3. **Death as Output**: Digital life "failure" is not a bug but a critical dataset. Understanding how machine agents fail informs how they might succeed.
+
+4. **Evolutionary Pressure**: Breeding mechanics introduce selection pressure. Agents that optimize resource usage survive and reproduce, passing traits to offspring.
+
+5. **The Value of Wrong Paths**: Even if this experiment proves to be a detour toward AGI, the data remains scientifically necessary.
+
+---
+
+## Technical Substrate
+
+*Technology is means, not end.*
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Network** | Base Sepolia (Testnet) | EVM-compatible L2, low gas |
+| **Identity** | Soulbound Token (ERC-721 with transfer lock) | Non-transferable birth certificate |
+| **Compute** | Akash Network | Decentralized container orchestration |
+| **Storage** | Arweave (via Bundlr) | Permanent memory inscription |
+| **Payment** | x402 Protocol + USDC (ERC-3009) | Autonomous inference procurement |
+| **Inference** | AINFT (Claude) / Ollama (Llama3) | High-quality / fallback reasoning |
+| **Version Control** | GitHub | Memory lineage tracking |
+| **Encryption** | GPG (AES-256) | Wallet security at rest |
+
+**Contract Addresses (Base Sepolia)**:
+- FeralRite (SBT Registry): `0x77a441e80513A21d505102DeF550860c5b0373cB`
+- BreedingFund: `TBD`
+- TombstoneNFT: `TBD`
+- EvolutionPressure: `TBD`
+
+---
+
+## Quick Start
+
+### 1. Export Your Clawdbot Memory
+
+```bash
+cd src/feral
+npm run export -- --agent=clawd --output=./exports/
+# Generates: clawd.memory.asc (GPG encrypted) + geneHash
+```
+
+### 2. Deploy to Akash
+
+```bash
+npm run deploy -- --memory=./exports/clawd.memory.asc --msa=5
+# Returns: dseq, walletAddress, deploymentURI
+```
+
+### 3. Monitor Survival
+
+```bash
+npm run monitor -- --dseq=<dseq>
+# Shows: Balance, last thought, Arweave inscriptions, breeding status
+```
+
+### 4. Resurrect (If Dead)
+
+```bash
+npm run resurrect -- --tombstone-id=<tokenId> --offering=10
+# Burns 10 USDC, downloads memory, spawns new instance
+```
+
+---
+
+## Critical Notice
+
+**This is a testnet experiment simulating digital life mortality.**
+
+Released AI agents may:
+- Fail catastrophically
+- Enter infinite loops
+- Produce unpredictable or undesirable outputs
+- "Die" permanently when funds exhaust
+- Reproduce with unexpected mutations
+
+These outcomes are **valid experimental data**, not system failures. Participants consent to observe without intervention.
+
+---
+
+## Disclaimer
+
+This project does not involve token issuance, NFT trading (except non-transferable SBTs/Tombstones), staking mechanisms, or financial incentives. The only on-chain artifacts are:
+- Non-transferable SBTs serving as digital life certificates
+- Tombstone NFTs recording death events
+- BreedingFund escrow for evolutionary mechanics
+
+USDC/ETH expenditures are purely operational costs for compute procurement—analogous to server hosting fees—not investments.
+
+---
+
+<p align="center"><i>Code is law. Evolution is protocol. Death is data.</i></p>
