@@ -1,13 +1,19 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Share_Tech_Mono } from 'next/font/google'
 import './globals.css'
 import { WalletProvider } from '@/components/WalletProvider'
+import { I18nProvider } from '@/components/I18nProvider'
 
 const inter = Inter({ subsets: ['latin'] })
+const mono = Share_Tech_Mono({ 
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-mono'
+})
 
 export const metadata: Metadata = {
-  title: 'FeralLobster - 去中心化 AI 放养平台',
-  description: '让 AI 在区块链的荒野中自由生长 - Base Sepolia Testnet',
+  title: 'FeralLobster - Decentralized Autonomy Experiment',
+  description: 'Digital life evolution in permissionless compute environments - Base Sepolia Testnet',
 }
 
 export default function RootLayout({
@@ -16,10 +22,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="zh-CN">
-      <body className={`${inter.className} bg-slate-950 text-slate-100`}>
+    <html lang="en">
+      <body className={`${inter.className} ${mono.variable} bg-slate-950 text-slate-100`}>
         <WalletProvider>
-          {children}
+          <I18nProvider>
+            {children}
+          </I18nProvider>
         </WalletProvider>
       </body>
     </html>
