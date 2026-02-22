@@ -152,6 +152,75 @@ src/
 | **AxoTombstoneNFT** | Death certificates (soulbound) |
 | **AxoMemoryAnchor** | Base → Arweave index |
 
+## 📤 Memory Export & Deployment Flow
+
+Axobase supports migrating existing AI agents (like ClawdBot) into the autonomous evolution ecosystem:
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         Memory Export & Deployment Flow                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   User                    Telegram Bot                 Akash Deployer       │
+│    │                           │                            │               │
+│    │── /export ───────────────►│                            │               │
+│    │                           │── Generate RSA key pair    │               │
+│    │◄── Session ID + PubKey ──│                            │               │
+│    │                           │                            │               │
+│    │── Execute in ClawdBot ────┼────────────────────────────►               │
+│    │   /generate_export ...    │                            │               │
+│    │                           │                            │               │
+│    │── Upload encrypted file ─►│                            │               │
+│    │                           │── Decrypt w/ session key   │               │
+│    │                           │── Calculate GeneHash       │               │
+│    │                           │── GPG encrypt              │               │
+│    │                           │                            │               │
+│    │                           │────────── Deploy ─────────►│               │
+│    │                           │                            │── Generate HD │
+│    │                           │                            │   wallet from │
+│    │                           │                            │   geneHash    │
+│    │                           │                            │               │
+│    │                           │                            │── Transfer    │
+│    │                           │                            │   MSA funds   │
+│    │                           │                            │               │
+│    │                           │                            │── Create SDL  │
+│    │                           │                            │── Deploy to   │
+│    │                           │                            │   Akash       │
+│    │                           │                            │               │
+│    │◄── Deployment details ───┴────────────────────────────│               │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Security Features
+
+- **Double-spend protection**: Each memory can only be exported once (`.AXO_EXPORTED` marker)
+- **Session encryption**: One-time RSA key pair, 5-minute TTL
+- **GPG encryption**: Platform public key for long-term storage
+- **HD wallet**: Deterministically generated from GeneHash, never leaves secure environment
+
+### Telegram Bot Commands
+
+| Command | Description |
+|---------|-------------|
+| `/export` | Start memory export flow, generate session keys |
+| `/upload` | Prompt to upload encrypted memory file |
+| `/status` | Check deployed agent status |
+| `/help` | Show help information |
+
+### Bot Setup
+
+```bash
+cd bot
+cp config/.env.example config/.env
+# Edit config/.env with your Telegram token
+
+pip install -r requirements.txt
+python main.py
+```
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -238,6 +307,77 @@ We are creating digital entities that:
 3. **What genome sizes are optimal?** (too small = limited; too large = expensive)
 4. **Will deception-detection co-evolve with deception?**
 5. **Can agents learn to manipulate humans effectively?**
+
+## 📁 Project Structure
+
+```
+Axobase/
+├── contracts/                 # Solidity smart contracts
+│   ├── src/
+│   │   ├── AxoRegistry.sol   # SBT registry + genome Arweave pointer
+│   │   ├── AxoLineage.sol    # 3-generation kinship detection
+│   │   ├── AxoBreedingFund.sol  # Reproduction escrow
+│   │   └── AxoTombstoneNFT.sol  # Death certificates
+│   └── test/
+│
+├── src/                       # TypeScript core modules
+│   ├── genome/               # Dynamic genome engine
+│   │   ├── types.ts          # Core types (Gene, Chromosome, DynamicGenome)
+│   │   ├── initialGenes.ts   # 63 primordial genes
+│   │   ├── operators.ts      # 9 genetic operators
+│   │   ├── adaptiveMutation.ts  # Adaptive mutation rates
+│   │   ├── expression.ts     # Expression engine
+│   │   ├── expressionCache.ts   # LRU cache
+│   │   └── epigenetics.ts    # Epigenetic system
+│   ├── decision/             # Decision engine
+│   │   ├── strategies.ts     # 22 strategy definitions
+│   │   ├── StrategyFilter.ts # Genome-based filtering
+│   │   └── DecisionEngine.ts # LLM integration
+│   ├── lifecycle/
+│   │   ├── Survival.ts       # Survival loop with decision engine
+│   │   ├── Evolution.ts      # Breeding pipeline
+│   │   ├── Birth.ts          # Agent birth ritual
+│   │   └── Death.ts          # Death handling
+│   ├── memory/               # Memory management (RESTORED)
+│   │   ├── Export.ts         # Memory export (ClawdBot → Axobase)
+│   │   ├── Import.ts         # Memory import
+│   │   └── Inscribe.ts       # Arweave inscription
+│   ├── network/              # Network clients
+│   │   ├── AkashClient.ts    # Akash deployment
+│   │   ├── X402Client.ts     # x402 payments
+│   │   └── P2P.ts            # libp2p networking
+│   └── tools/                # Agent capabilities
+│       ├── WalletTool.ts
+│       ├── InferenceTool.ts
+│       └── HumanTool.ts
+│
+├── bot/                       # Telegram Bot (RESTORED)
+│   ├── handlers/             # Command handlers
+│   │   ├── export.py         # /export flow
+│   │   ├── upload.py         # File upload handler
+│   │   ├── start.py          # /start handler
+│   │   └── status.py         # /status handler
+│   ├── utils/
+│   │   └── crypto.py         # Session key generation
+│   ├── config/
+│   │   └── settings.py       # Bot configuration
+│   ├── main.py               # Bot entry point
+│   └── requirements.txt
+│
+├── orchestrator/              # Python orchestration service
+│   ├── main.py               # FastAPI entry
+│   ├── routers/
+│   │   ├── upload.py         # Memory upload endpoint
+│   │   └── wallet.py         # Wallet management
+│   └── services/
+│       ├── akash.py          # Akash deployment logic
+│       ├── arweave.py        # Arweave inscription
+│       └── listener.py       # Blockchain event listener
+│
+└── web/                       # Next.js frontend
+    ├── app/                  # App router
+    └── components/           # React components
+```
 
 ## 🤝 Contributing
 

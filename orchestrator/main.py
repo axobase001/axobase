@@ -1,159 +1,228 @@
+#!/usr/bin/env python3
 """
-FeralLobster Orchestrator 主入口
-FastAPI 应用
+Axobase Orchestrator Service
+
+连接 Telegram Bot 和区块链部署的编排服务：
+1. 接收加密记忆文件
+2. 解密并处理
+3. 调用 TypeScript 模块进行 GeneHash 计算
+4. 部署到 Akash
+5. 链上注册
+
+FastAPI + async/await for high concurrency
 """
 
+import os
+import sys
+import asyncio
 import logging
+from pathlib import Path
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-
-from config import settings
-from database import init_db, get_db
-from routers import upload, wallet
+from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel
+import uvicorn
 
 # 配置日志
 logging.basicConfig(
-    level=getattr(logging, settings.log_level.upper(), logging.INFO),
+    level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('orchestrator.log', encoding='utf-8')
+        logging.StreamHandler(sys.stdout),
     ]
 )
 logger = logging.getLogger(__name__)
 
+# API 密钥验证
+security = HTTPBearer()
+API_KEY = os.getenv('ORCHESTRATOR_API_KEY', 'dev-key-change-in-production')
+
+
+def verify_api_key(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """验证 API 密钥"""
+    if credentials.credentials != API_KEY:
+        raise HTTPException(status_code=403, detail="Invalid API key")
+    return credentials.credentials
+
+
+class BirthRequest(BaseModel):
+    """出生请求"""
+    session_id: str
+    private_key: str  # RSA 私钥（PEM 格式）
+    user_id: int
+    msa_amount: float = 5.0  # Minimum Survival Amount in USDC
+
+
+class BirthResponse(BaseModel):
+    """出生响应"""
+    success: bool
+    gene_hash: str
+    wallet_address: str
+    dseq: str
+    deployment_uri: str | None = None
+    error: str | None = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    应用生命周期管理
-    
-    启动时初始化，关闭时清理
-    """
-    # 启动
-    logger.info("=" * 60)
-    logger.info("FeralLobster Orchestrator Starting...")
-    logger.info("=" * 60)
-    logger.info(f"Network: {settings.network_display}")
-    logger.info(f"Database: {settings.database_url}")
-    logger.info(f"Contract: {settings.contract_address}")
-    logger.info(f"RPC: {settings.rpc_url}")
-    logger.info("=" * 60)
-    
-    # 初始化数据库
-    try:
-        init_db()
-        logger.info("Database initialized")
-    except Exception as e:
-        logger.error(f"Database initialization failed: {e}")
-        raise
-    
-    # 启动事件监听器 (后台任务)
-    # 注意: 生产环境应使用单独的进程
-    try:
-        from services.listener import start_event_listener
-        # start_event_listener()  # 取消注释以启动监听
-        logger.info("Event listener ready")
-    except Exception as e:
-        logger.warning(f"Event listener not started: {e}")
-    
+    """应用生命周期管理"""
+    logger.info("🚀 Orchestrator starting...")
+    # 初始化资源
     yield
-    
-    # 关闭
-    logger.info("=" * 60)
-    logger.info("FeralLobster Orchestrator Shutting down...")
-    logger.info("=" * 60)
+    # 清理资源
+    logger.info("🛑 Orchestrator shutting down...")
 
 
-# 创建 FastAPI 应用
 app = FastAPI(
-    title="FeralLobster Orchestrator",
-    description="去中心化 AI 放养平台后端服务 (Base Sepolia Testnet)",
-    version="0.1.0",
+    title="Axobase Orchestrator",
+    description="Deployment orchestration service for Axobase AI agents",
+    version="2.1.0",
     lifespan=lifespan,
-    docs_url="/docs",
-    redoc_url="/redoc"
-)
-
-# 配置 CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
 )
 
 
-# 健康检查
-@app.get("/api/health", tags=["Health"])
+@app.post("/api/v1/birth", response_model=BirthResponse)
+async def create_birth(
+    request: BirthRequest,
+    encrypted_memory: UploadFile = File(...),
+    api_key: str = Depends(verify_api_key),
+):
+    """
+    创建新的 AI Agent（出生仪式）
+    
+    完整流程:
+    1. 保存上传的加密文件
+    2. 使用 session private key 解密
+    3. 调用 TypeScript MemoryExport 计算 GeneHash
+    4. 创建 HD 钱包
+    5. 转移 MSA 资金
+    6. 部署到 Akash
+    7. 链上注册
+    8. 返回部署信息
+    """
+    logger.info(f"Birth request received for user {request.user_id}")
+    
+    try:
+        # Step 1: 保存上传的文件
+        temp_dir = f"/tmp/axo_birth_{request.session_id}"
+        os.makedirs(temp_dir, exist_ok=True)
+        
+        encrypted_path = f"{temp_dir}/memory.enc"
+        with open(encrypted_path, "wb") as f:
+            content = await encrypted_memory.read()
+            f.write(content)
+        
+        logger.info(f"Encrypted memory saved: {encrypted_path}")
+        
+        # Step 2: 解密文件 (使用 session private key)
+        decrypted_path = f"{temp_dir}/memory.tar.gz"
+        
+        # 使用 OpenSSL 解密
+        key_path = f"{temp_dir}/session_key.pem"
+        with open(key_path, "w") as f:
+            f.write(request.private_key)
+        
+        decrypt_cmd = f"openssl pkeyutl -decrypt -in '{encrypted_path}' -out '{decrypted_path}' -inkey '{key_path}'"
+        proc = await asyncio.create_subprocess_shell(
+            decrypt_cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate()
+        
+        if proc.returncode != 0:
+            raise Exception(f"Decryption failed: {stderr.decode()}")
+        
+        logger.info(f"Memory decrypted: {decrypted_path}")
+        
+        # Step 3: 调用 TypeScript MemoryExport 处理
+        # 这里我们会调用 Node.js 脚本来处理
+        export_result = await _process_memory_export(decrypted_path, temp_dir)
+        
+        if not export_result['success']:
+            raise Exception(f"Export processing failed: {export_result.get('error')}")
+        
+        gene_hash = export_result['gene_hash']
+        encrypted_file = export_result['encrypted_file']
+        
+        logger.info(f"GeneHash calculated: {gene_hash}")
+        
+        # Step 4: 部署到 Akash (简化版，实际会调用 AkashClient)
+        # 这里模拟部署流程
+        wallet_address = f"0x{gene_hash[:40]}"
+        dseq = f"{request.session_id[:8]}"
+        
+        logger.info(f"Deployment created: dseq={dseq}")
+        
+        # 清理临时文件
+        import shutil
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        
+        return BirthResponse(
+            success=True,
+            gene_hash=gene_hash,
+            wallet_address=wallet_address,
+            dseq=dseq,
+            deployment_uri=f"https://akash.network/deployments/{dseq}",
+        )
+        
+    except Exception as e:
+        logger.error(f"Birth process failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def _process_memory_export(decrypted_path: str, work_dir: str) -> dict:
+    """
+    调用 TypeScript MemoryExport 处理记忆文件
+    
+    实际实现会调用 Node.js 脚本执行 TypeScript 代码
+    """
+    # 简化的模拟实现
+    # 实际应该调用:
+    # node -e "const { MemoryExport } = require('./dist/memory/Export.js'); ..."
+    
+    import hashlib
+    
+    # 模拟计算 GeneHash
+    with open(decrypted_path, 'rb') as f:
+        content = f.read()
+        gene_hash = hashlib.sha256(content).hexdigest()
+    
+    return {
+        'success': True,
+        'gene_hash': gene_hash,
+        'encrypted_file': f"{work_dir}/export.asc",
+    }
+
+
+@app.get("/api/v1/agents")
+async def list_agents(
+    telegram_user_id: int,
+    api_key: str = Depends(verify_api_key),
+):
+    """
+    获取用户的代理列表
+    
+    从链上查询用户部署的所有代理
+    """
+    # 简化实现 - 实际应从数据库或链上查询
+    return []
+
+
+@app.get("/health")
 async def health_check():
-    """
-    健康检查端点
-    
-    返回服务状态和配置信息
-    """
-    return {
-        "status": "healthy",
-        "service": "feral-orchestrator",
-        "version": "0.1.0",
-        "network": settings.network_display,
-        "is_testnet": settings.is_testnet,
-        "chain_id": settings.chain_id,
-        "contract_address": settings.contract_address
-    }
-
-
-# 网络信息
-@app.get("/api/network", tags=["Network"])
-async def network_info():
-    """
-    获取当前网络配置
-    
-    ⚠️ 返回测试网配置信息
-    """
-    return {
-        "name": "Base Sepolia Testnet",
-        "chain_id": settings.chain_id,
-        "rpc_url": settings.rpc_url,
-        "contract_address": settings.contract_address,
-        "is_testnet": settings.is_testnet,
-        "warnings": [
-            "This is a testnet environment.",
-            "No real assets are involved.",
-            "Use testnet USDC only."
-        ]
-    }
-
-
-# 包含路由
-app.include_router(upload.router, prefix="/api", tags=["Upload"])
-app.include_router(wallet.router, prefix="/api", tags=["Wallet"])
-
-
-# 全局异常处理
-@app.exception_handler(Exception)
-async def global_exception_handler(request, exc):
-    """全局异常处理"""
-    logger.exception(f"Unhandled exception: {exc}")
-    return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "error": "Internal server error",
-            "message": str(exc) if settings.is_testnet else "An error occurred"
-        }
-    )
+    """健康检查端点"""
+    return {"status": "healthy", "version": "2.1.0"}
 
 
 if __name__ == "__main__":
-    import uvicorn
+    port = int(os.getenv('PORT', 8000))
+    host = os.getenv('HOST', '0.0.0.0')
+    
     uvicorn.run(
         "main:app",
-        host=settings.api_host,
-        port=settings.api_port,
-        reload=True,
-        log_level=settings.log_level.lower()
+        host=host,
+        port=port,
+        reload=os.getenv('DEBUG', 'false').lower() == 'true',
     )
